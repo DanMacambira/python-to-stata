@@ -1,7 +1,7 @@
 # python-to-stata
-Short Python function to export pandas dataframes into stata dta file types. This allows you to use an iPython notebook to explore and transform your data and then easily export it to Stata for other purposes.
+Short Python function to export pandas dataframes into stata .dta file types. This allows you to use an iPython notebook to explore and transform your data, and then easily export it to Stata for other purposes.
 
-Pandas has an export to dta function but does not always work and can be quite slow.
+Pandas has an export to .dta function but does not always work and can be quite slow.
 
 Special thanks to [@anthonylollo](https://github.com/anthonylollo)!
 
