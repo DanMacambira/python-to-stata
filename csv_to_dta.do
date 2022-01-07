@@ -30,6 +30,20 @@ if `num_columns' > 0 {
 	}
 }
 
+* Add labels to variables
+local num_labels ``m''
+local num_labels = `num_labels'/2
+if `num_labels' > 0 {
+	local var = `m'+1
+	forval i = 1/`num_labels' {
+		local lab = `var'+1
+		local my_str = `"``var''"' + " " + char(34) + `"``lab''"' + char(34)
+		`my_str'
+		local ++var
+		local ++var
+	}
+}
+
 * Save dta
 order `order'
 save `sname'.dta, replace
