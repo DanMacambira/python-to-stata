@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_nums=None, var_labels=None, log_path=None):
+def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_nums=None, var_labels=None, value_labels=None, log_path=None):
     """
     Export dataframe to Stata silently in the background
     Parameters
@@ -19,6 +19,8 @@ def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_n
         Note, this do file sets all dtypes to be strings in order to protect data types.
     var_labels: dict of str, e.g. {'myvar1': 'mylabel1', 'myvar2': 'mylabel2'}
         Labels to add to variables in Stata
+    value_labels: (dict, dict), e.g., (vars, value labels)
+        Value labels to add to variables in Stata
     log_path : str
         Full path to save the log files. By default will save in the current working directory
     """
@@ -36,24 +38,50 @@ def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_n
     params = [csv, dta]
 
     # Convert string columns to num type columns
+    # Add columns found in the vaue_labels
+    if value_labels is  None:
+        fn = []
+    else:
+        lab_vars, _ = value_labels
+        fn = list(lab_vars.keys())
     if force_nums is not None:
         if isinstance(force_nums, list):
             pass
         else:
             force_nums = [force_nums]
+        force_nums = force_nums + fn
         force_nums = [var for var in force_nums if var in dataframe.columns]
+        force_nums = list(set(force_nums))
         num_columns = len(force_nums)
-        params.extend(str(num_columns))
+        params.append(str(num_columns))
         params.extend(force_nums)
 
     # Variable Labels
     if var_labels is not None:
-        var_labels = {var: var_labels[var] for var in var_labels.keys() if var in dataframe.columns}
-        labels = [(f'label var {var}', f'{var_labels[var]}') for var in var_labels.keys()]
+        var_labels = {var: var_labels[var] for var in var_labels if var in dataframe.columns}
+        labels = [(f'label var {var}', f'{var_labels[var]}') for var in var_labels]
         labels = list(sum(labels, ())) 
         num_columns = len(labels)
-        params.extend(str(num_columns))
+        params.append(str(num_columns))
         params.extend(labels)
+
+    # Variable Labels
+    if value_labels is not None:
+        lab_vars, lab_values = value_labels
+        # First add and define the value labels
+        values = [(f'label define {var}', f'{lab_values[var]}') for var in lab_values]
+        values = list(sum(values, ()))
+        values = [w.replace('"', '^') for w in values]
+        num_columns = len(values)
+        params.append(str(num_columns))
+        params.extend(values)
+        # Now add them to the desired varaibles
+        lab_vars = {var: lab_vars[var] for var in lab_vars if var in dataframe.columns}
+        myvars = [(f'label values {var}', f'{lab_vars[var]}') for var in lab_vars]
+        myvars = list(sum(myvars, ())) 
+        num_columns = len(myvars)
+        params.append(str(num_columns))
+        params.extend(myvars)
 
 
     #### RUN
