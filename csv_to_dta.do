@@ -19,7 +19,8 @@ local order `r(varlist)'
 
 * Convert string data into nums
 local num_columns `3' // Number of columns to convert
-local num_columns = int(`num_columns')
+if "`num_columns'" != "" local num_columns = int(`num_columns')
+else if "`num_columns'" == "" local num_columns = 0
 if `num_columns' > 0 {
 	local m = 4
 	forval i = 1/`num_columns' {
@@ -35,7 +36,8 @@ else {
 
 * Add labels to variables
 local num_labels ``m''
-local num_labels = `num_labels'/2
+if "`num_labels'" != "" local num_labels = `num_labels'/2
+else if "`num_labels'" == "" local num_labels = 0
 if `num_labels' > 0 {
 	local var = `m'+1
 	forval i = 1/`num_labels' {
@@ -50,9 +52,10 @@ if `num_labels' > 0 {
 }
 
 * Define value labels
-local ++m
+if `num_labels' > 0 local ++m
 local num_labels ``m''
-local num_labels = `num_labels'/2
+if "`num_labels'" != "" local num_labels = `num_labels'/2
+else if "`num_labels'" == "" local num_labels = 0
 if `num_labels' > 0 {
 	local var = `m'+1
 	forval i = 1/`num_labels' {
@@ -73,7 +76,8 @@ if `num_labels' > 0 {
 * Apply value labels
 local ++m
 local num_labels ``m''
-local num_labels = `num_labels'/2
+if "`num_labels'" != "" local num_labels = `num_labels'/2
+else if "`num_labels'" == "" local num_labels = 0
 if `num_labels' > 0 {
 	local var = `m'+1
 	forval i = 1/`num_labels' {
