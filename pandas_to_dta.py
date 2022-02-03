@@ -48,20 +48,30 @@ def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_n
         param : lst
             List of parameters to be split
         """
-        if num_params > 38:
+        limit = 19
+        if param_name == 'force_nums':
+            limit = limit*2
+            tup_param = [(param[i]) for i in range(0, len(param))]
+        else:
+            tup_param = [(param[i], param[i+1]) for i in range(0, len(param)-1, 2)]
+
+
+        if num_params > limit:
             block_size = num_params
             i = 2
-            while block_size > 38:
-                new_params = [x.tolist() for x in np.array_split(param, i)]
+            while block_size > limit:
+                new_params = [x.tolist() for x in np.array_split(tup_param, i)]
                 block_size = len(new_params[0])
                 i += 2
             keys = [f'{param_name}_block{x+1}' for x in range(i)]
+            new_params = [[x for lst in new_params[q] for x in lst] for q in range(0,i-2)]
             values = [[str(len(lst))] + lst for lst in new_params]
             d.update(dict(zip(keys, values)))
         else:
             values = [str(len(param))] + param
             d.update({f'{param_name}': values})
 
+           
     ## Main
 
     # Import dataframe into Stata through temp csv
