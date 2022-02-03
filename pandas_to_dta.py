@@ -55,7 +55,6 @@ def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_n
         else:
             tup_param = [(param[i], param[i+1]) for i in range(0, len(param)-1, 2)]
 
-
         if num_params > limit:
             block_size = num_params
             i = 2
