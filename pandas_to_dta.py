@@ -3,12 +3,12 @@ import subprocess
 import pandas as pd
 import numpy as np
 
-def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_nums=None, var_labels=None, value_labels=None, log_path=None):
+def to_dta(stata_path, dataframe, output_path=None, file_name=None, force_nums=None, var_labels=None, value_labels=None, log_path=None):
     """
     Export dataframe to Stata silently in the background.
     
     In block mode (when there are more than 38 user arguments), the function will automatically 
-    create log files in the output_path.
+    create log files.
 
     Parameters
     ----------
@@ -55,6 +55,7 @@ def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_n
         else:
             tup_param = [(param[i], param[i+1]) for i in range(0, len(param)-1, 2)]
 
+
         if num_params > limit:
             block_size = num_params
             i = 2
@@ -63,14 +64,15 @@ def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_n
                 block_size = len(new_params[0])
                 i += 2
             keys = [f'{param_name}_block{x+1}' for x in range(i)]
-            new_params = [[x for lst in new_params[q] for x in lst] for q in range(0,i-2)]
+            if param_name != 'force_nums':
+                new_params = [[x for lst in new_params[q] for x in lst] for q in range(0,i-2)]
             values = [[str(len(lst))] + lst for lst in new_params]
             d.update(dict(zip(keys, values)))
         else:
             values = [str(len(param))] + param
             d.update({f'{param_name}': values})
 
-           
+
     ## Main
 
     # Import dataframe into Stata through temp csv
@@ -122,17 +124,22 @@ def to_dta(stata_path, dataframe=None, output_path=None, file_name=None, force_n
     if value_labels is not None:
         lab_vars, lab_values = value_labels
         # First add and define the value labels
-        values = [(f'label define {var.lower()}', f'{lab_values[var]}') for var in lab_values]
+        values = [(f'label define {var}', f'{lab_values[var]}') for var in lab_values]
         values = list(sum(values, ()))
         values = [w.replace('"', '^') for w in values]
         values_cols = len(values)
-        params.append(str(values_cols))
-        params.extend(values)
         # Now add them to the desired varaibles
         lab_vars = {var: lab_vars[var] for var in lab_vars if var in dataframe.columns}
         myvars = [(f'label values {var.lower()}', f'{lab_vars[var]}') for var in lab_vars]
         myvars = list(sum(myvars, ())) 
         myvars_cols = len(myvars)
+        # Append
+        # (if no variables have been passed in lab_vars, delete the value labels)
+        if myvars_cols == 0:
+            values_cols = 0
+            values = ''
+        params.append(str(values_cols))
+        params.extend(values)
         params.append(str(myvars_cols))
         params.extend(myvars)
     else:
